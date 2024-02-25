@@ -39,6 +39,9 @@ model Post {
   alumniName String?
   alumniEmail String?
   content String?
+  linkedIn String?
+  college String?
+  startup String?
   author Admin  @relation(fields: [authorId], references: [id])
   authorId Int
 }

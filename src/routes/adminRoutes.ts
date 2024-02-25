@@ -4,6 +4,7 @@ import dotenv from 'dotenv';
 import { authenticateJwt } from '../middleware/adminAuth';
 import { PrismaClient } from '@prisma/client';
 import jwt,{ Secret } from 'jsonwebtoken';
+import { Cipher } from 'crypto';
 dotenv.config();
 
 const secret = process.env.SECRET as Secret;
@@ -75,7 +76,7 @@ router.post('/login', async (req, res) => {
   
 
 router.post('/addpost', authenticateJwt, async (req, res) => {
-    const { alumniName, alumniEmail, content } = req.body;
+    const { alumniName, alumniEmail, content, linkedIn, college, startup } = req.body;
     let authorId: string = req.headers["authorId"]?.toString() || "";
 
     try {
@@ -84,6 +85,9 @@ router.post('/addpost', authenticateJwt, async (req, res) => {
                 alumniEmail: alumniEmail,
                 alumniName: alumniName,
                 content: content,
+                linkedIn: linkedIn,
+                college: college,
+                startup: startup,
                 authorId: parseInt(authorId)
             }
         });
@@ -97,7 +101,7 @@ router.post('/addpost', authenticateJwt, async (req, res) => {
 
 router.put('/updatepost', authenticateJwt, async (req, res) => {
     try {
-        const { alumniName, alumniEmail, content } = req.body;
+        const { alumniName, alumniEmail, content, linkedIn, college, startup } = req.body;
         let authorId: string = req.headers["authorId"]?.toString() || "";
         const postId = parseInt(req.params.id, 10);
         const post = await prisma.post.update({
@@ -107,7 +111,10 @@ router.put('/updatepost', authenticateJwt, async (req, res) => {
             data: {
                 alumniName: alumniName,
                 alumniEmail: alumniEmail,
-                content: content
+                content: content,
+                linkedIn: linkedIn,
+                college: college,
+                startup: startup
             }
         });
         res.status(200).json(post);
