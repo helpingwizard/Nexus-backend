@@ -4,7 +4,6 @@ import dotenv from 'dotenv';
 import { authenticateJwt } from '../middleware/adminAuth';
 import { PrismaClient } from '@prisma/client';
 import jwt,{ Secret } from 'jsonwebtoken';
-import { Cipher } from 'crypto';
 dotenv.config();
 
 const secret = process.env.SECRET as Secret;
@@ -59,7 +58,8 @@ router.post('/login', async (req, res) => {
     try {
       const admin = await prisma.admin.findUnique({
         where: {
-          email: email
+          email: email,
+          password : password
         }
       });
   
@@ -99,33 +99,35 @@ router.post('/addpost', authenticateJwt, async (req, res) => {
 });
 
 
-router.put('/updatepost', authenticateJwt, async (req, res) => {
-    try {
-        const { alumniName, alumniEmail, content, linkedIn, college, startup } = req.body;
-        let authorId: string = req.headers["authorId"]?.toString() || "";
-        const postId = parseInt(req.params.id, 10);
-        const post = await prisma.post.update({
-            where: {
-                id: postId
-            },
-            data: {
-                alumniName: alumniName,
-                alumniEmail: alumniEmail,
-                content: content,
-                linkedIn: linkedIn,
-                college: college,
-                startup: startup
-            }
-        });
-        res.status(200).json(post);
-    } catch (error) {
-        console.error('Error updating post:', error);
-        res.status(500).json({ error: 'Failed to update post' });
-    }
+router.put('/updatepost/:id', authenticateJwt, async (req, res) => {
+  try {
+      const { alumniName, alumniEmail, content, linkedIn, college, startup } = req.body;
+      let authorId = req.headers["authorId"]?.toString() || "";
+      const postId = parseInt(req.params.id, 10);
+      const post = await prisma.post.update({
+          where: {
+              id: postId
+          },
+          data: {
+              alumniName: alumniName,
+              alumniEmail: alumniEmail,
+              content: content,
+              linkedIn: linkedIn,
+              college: college,
+              startup: startup
+          }
+      });
+      res.status(200).json(post);
+  } catch (error) {
+      console.error('Error updating post:', error);
+      res.status(500).json({ error: 'Failed to update post' });
+  }
 });
 
-router.post('/deletePost', authenticateJwt, async (req, res) => {
+
+router.post('/deletePost/:id', authenticateJwt, async (req, res) => {
     try {
+
         const postId = parseInt(req.params.id, 10);
         const deletepost = await prisma.user.delete({
             where: {
@@ -137,6 +139,31 @@ router.post('/deletePost', authenticateJwt, async (req, res) => {
         res.status(500).json({ message: 'Failed to delete post', error: error.message });
     }
 });
+
+router.get('/posts', authenticateJwt, async (req, res) => {
+  try {
+    const posts = await prisma.post.findMany({});
+    res.status(201).send({ posts });
+  } catch (error) {
+    console.error('Error fetching posts:', error);
+    res.status(500).send({ error: 'Failed to fetch posts' });
+  }
+});
+
+router.get('/post/:postId', authenticateJwt, async (req, res) => {
+  const postId = req.params.postId;
+  const post = await prisma.post.findUnique({
+    where: {
+      id: parseInt(postId)
+    }
+  });
+  if (post) {
+    res.json({ post });
+  } else {
+    res.status(404).json({ message: 'Post not found' });
+  }
+});
+
 
 export default router;
 

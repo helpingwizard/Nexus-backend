@@ -18,6 +18,8 @@ const credentials = z.object({
   password: z.string().min(6).max(32),
 });
 
+
+
 router.post('/signup', async (req, res) => {
   const parsedInput = credentials.safeParse(req.body);
 

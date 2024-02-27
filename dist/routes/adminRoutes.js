@@ -61,7 +61,8 @@ exports.router.post('/login', (req, res) => __awaiter(void 0, void 0, void 0, fu
     try {
         const admin = yield prisma.admin.findUnique({
             where: {
-                email: email
+                email: email,
+                password: password
             }
         });
         if (admin) {
@@ -78,7 +79,7 @@ exports.router.post('/login', (req, res) => __awaiter(void 0, void 0, void 0, fu
 }));
 exports.router.post('/addpost', adminAuth_1.authenticateJwt, (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     var _a;
-    const { alumniName, alumniEmail, content } = req.body;
+    const { alumniName, alumniEmail, content, linkedIn, college, startup } = req.body;
     let authorId = ((_a = req.headers["authorId"]) === null || _a === void 0 ? void 0 : _a.toString()) || "";
     try {
         const post = yield prisma.post.create({
@@ -86,6 +87,9 @@ exports.router.post('/addpost', adminAuth_1.authenticateJwt, (req, res) => __awa
                 alumniEmail: alumniEmail,
                 alumniName: alumniName,
                 content: content,
+                linkedIn: linkedIn,
+                college: college,
+                startup: startup,
                 authorId: parseInt(authorId)
             }
         });
@@ -96,10 +100,10 @@ exports.router.post('/addpost', adminAuth_1.authenticateJwt, (req, res) => __awa
         res.status(500).json({ error: "Internal Server Error" });
     }
 }));
-exports.router.put('/updatepost', adminAuth_1.authenticateJwt, (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+exports.router.put('/updatepost/:id', adminAuth_1.authenticateJwt, (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     var _b;
     try {
-        const { alumniName, alumniEmail, content } = req.body;
+        const { alumniName, alumniEmail, content, linkedIn, college, startup } = req.body;
         let authorId = ((_b = req.headers["authorId"]) === null || _b === void 0 ? void 0 : _b.toString()) || "";
         const postId = parseInt(req.params.id, 10);
         const post = yield prisma.post.update({
@@ -109,7 +113,10 @@ exports.router.put('/updatepost', adminAuth_1.authenticateJwt, (req, res) => __a
             data: {
                 alumniName: alumniName,
                 alumniEmail: alumniEmail,
-                content: content
+                content: content,
+                linkedIn: linkedIn,
+                college: college,
+                startup: startup
             }
         });
         res.status(200).json(post);
@@ -119,7 +126,7 @@ exports.router.put('/updatepost', adminAuth_1.authenticateJwt, (req, res) => __a
         res.status(500).json({ error: 'Failed to update post' });
     }
 }));
-exports.router.post('/deletePost', adminAuth_1.authenticateJwt, (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+exports.router.post('/deletePost/:id', adminAuth_1.authenticateJwt, (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const postId = parseInt(req.params.id, 10);
         const deletepost = yield prisma.user.delete({
@@ -131,6 +138,30 @@ exports.router.post('/deletePost', adminAuth_1.authenticateJwt, (req, res) => __
     }
     catch (error) {
         res.status(500).json({ message: 'Failed to delete post', error: error.message });
+    }
+}));
+exports.router.get('/posts', adminAuth_1.authenticateJwt, (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const posts = yield prisma.post.findMany({});
+        res.status(201).send({ posts });
+    }
+    catch (error) {
+        console.error('Error fetching posts:', error);
+        res.status(500).send({ error: 'Failed to fetch posts' });
+    }
+}));
+exports.router.get('/post/:postId', adminAuth_1.authenticateJwt, (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const postId = req.params.postId;
+    const post = yield prisma.post.findUnique({
+        where: {
+            id: parseInt(postId)
+        }
+    });
+    if (post) {
+        res.json({ post });
+    }
+    else {
+        res.status(404).json({ message: 'Post not found' });
     }
 }));
 exports.default = exports.router;
